@@ -4,10 +4,17 @@
 \alias{classify}
 \title{Fitting classification models to sequencing data}
 \usage{
-classify(data, method = "rpart", B = 25, ref = NULL,
-  class.labels = NULL, preProcessing = c("deseq-vst", "deseq-rlog",
-  "deseq-logcpm", "tmm-logcpm", "logcpm"), normalize = c("deseq", "TMM",
-  "none"), control = NULL, ...)
+classify(
+  data,
+  method = "rpart",
+  B = 25,
+  ref = NULL,
+  class.labels = NULL,
+  preProcessing = c("deseq-vst", "deseq-rlog", "deseq-logcpm", "tmm-logcpm", "logcpm"),
+  normalize = c("deseq", "TMM", "none"),
+  control = NULL,
+  ...
+)
 }
 \arguments{
 \item{data}{a \code{DESeqDataSet} object, see the constructor functions \code{\link[DESeq2:DESeqDataSet]{DESeqDataSet}}, \code{\link[DESeq2:DESeqDataSet]{DESeqDataSetFromMatrix}},

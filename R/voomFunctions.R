@@ -134,7 +134,7 @@ softmax = function(x, gap = FALSE){
     x[cbind(seq(d[1]), pclass)] = drop(x %*% rep(1, d[2]))
     gaps = do.call("pmin", data.frame(x))
   }
-  pclass <- if (is.null(dd) || !length(dd)){
+  pclass <- if (any(is.null(dd), !length(dd))){
     pclass
   } else {
     factor(pclass, levels = seq(d[2]), labels = dd)
@@ -245,10 +245,13 @@ calcNormFactorsGSD <- function(data.train, data.test, lib.size = NULL, method = 
                                 doWeighting = TRUE, Acutoff = -1e+10, p = 0.75, ...){
   x <- as.matrix(data.train)
   xtest <- as.matrix(data.test)
-  if (any(is.na(x)||is.na(xtest)))
-    stop("NAs not permitted")
-  if (is.null(lib.size))
+  if (any(is.na(x), is.na(xtest))){
+    stop("NAs not permitted.")
+  }
+    
+  if (is.null(lib.size)){
     lib.size <- colSums(x)
+  }
 
   lib.size.test <- colSums(xtest)
   method <- match.arg(method)
@@ -258,7 +261,7 @@ calcNormFactorsGSD <- function(data.train, data.test, lib.size = NULL, method = 
   }
 
   xtest <- xtest[!allzero, , drop = FALSE]
-  if (nrow(x) == 0 || ncol(x) == 1){
+  if (any(nrow(x) == 0, ncol(x) == 1)){
     method = "none"
   }
 

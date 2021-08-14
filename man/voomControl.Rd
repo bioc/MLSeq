@@ -4,8 +4,7 @@
 \alias{voomControl}
 \title{Define controlling parameters for voom-based classifiers}
 \usage{
-voomControl(method = "repeatedcv", number = 5, repeats = 10,
-  tuneLength = 10)
+voomControl(method = "repeatedcv", number = 5, repeats = 10, tuneLength = 10)
 }
 \arguments{
 \item{method}{validation method. Support repeated cross validation only ("repeatedcv").}

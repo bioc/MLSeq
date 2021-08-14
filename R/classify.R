@@ -607,9 +607,9 @@ classify.voom <- function(data, normalize = c("deseq", "TMM", "none"), method = 
 #' is used to define total number of tuning parameter to be searched.
 #' @param rho a single numeric value. This parameter is used as tuning parameter in PLDA classifier.
 #' It does not effect NBLDA classifier.
-#' @param rhos a numeric vector. If optimum parameter is searched among given values, this option shpould be used.
+#' @param rhos a numeric vector. If optimum parameter is searched among given values, this option should be used.
 #' @param beta parameter of Gamma distribution. See PLDA for details.
-#' @param prior prior probabilities of each class
+#' @param prior prior probabilities of each class. a numeric vector.
 #' @param alpha a numeric value in the interval 0 and 1. It is used to apply power transformation through PLDA method.
 #' @param truephi a numeric value. If true value of genewise dispersion is known and constant for all genes, this
 #' parameter should be used.
@@ -654,24 +654,44 @@ discreteControl <- function(method = "repeatedcv", number = 5, repeats = 10, rho
   }
 
   if (!is.null(rho)){
-    if (any(rho < 0)){
-      stop("'rho' cannot be negative value.")
+    # Calculations stopped when rho is not a numeric value.
+    if (!is.numeric(rho)){
+      stop("'rho' must be numeric.")
     }
+    
     if (length(rho) >= 2){
-      warning("A single value should be given for 'rho'. Only the first element is used.")
       rho <- rho[1]
+      warning(paste0("A single value should be given for 'rho'. Only the first element is used (rho=", rho, ")."))
+    }
+    
+    # Negative values are not allowed for rho.
+    if (rho < 0){
+      stop(paste0("A negative value was assigned to 'rho' (rho=", rho, "). It must be nonnegative."))
     }
   }
-  if (!is.null(rhos) && any(rhos < 0)){
-    stop("'rhos' cannot be negative value.")
+  
+  if (!is.null(rhos)){
+    if (!is.numeric(rhos)){
+      stop("'rhos' must be a numeric vector.")
+    }
+    
+    rhos <- rhos[!is.na(rhos)]
+    
+    if (any(rhos < 0)){
+      stop("Negative values are not allowed in 'rhos'.")  
+    }
   }
 
-  if (!is.null(prior) && (any(prior > 1) || any(prior < 0))){
-    stop("'prior' should be between 0 and 1.")
+  if (!is.null(prior)){
+    prior <- prior[!is.na(prior)]
+    
+    if (any(prior < 0, prior > 1)){
+      stop("'prior' should be between 0 and 1.")
+    }
   }
 
   if (tuneLength <= 0){
-    stop("'tuneLength' must be positive integer and non-zero.")
+    stop("'tuneLength' must be non-zero and positive integer.")
   }
 
   if (!is.null(alpha)){
@@ -679,7 +699,7 @@ discreteControl <- function(method = "repeatedcv", number = 5, repeats = 10, rho
       warning("A single value should be given for 'alpha'. Only the first element is used.")
       alpha <- alpha[1]
     }
-    if (alpha < 0 || alpha > 1){
+    if (any(alpha < 0, alpha > 1)){
       stop("'alpha' should be between 0 and 1.")
     }
   }
@@ -724,29 +744,34 @@ trainPLDA <- function(x, y, rhos = NULL, beta = 1, type = c("mle", "deseq", "qua
   #          uniform priors are used (i.e. each class is equally likely).
 
   # ii <- NULL
-  if (!transform && !is.null(alpha)) stop("You have asked for NO transformation but have entered alpha.")
-  if (transform && is.null(alpha)) alpha <- FindBestTransform(x)
+  if (!transform & !is.null(alpha)){
+    stop("You have asked for NO transformation but have entered alpha.")
+  }
+  
+  if (transform & is.null(alpha)){
+    alpha <- FindBestTransform(x)
+  }
 
   ## Apply power transform here.
   if (transform){
-    if (alpha <= 0 || alpha > 1){
-      stop("alpha must be between 0 and 1")
+    if (any(alpha <= 0, alpha > 1)){
+      stop("alpha must be between 0 and 1.")
     }
-    x <- x^alpha
+    x <- x ^ alpha
   }
 
   if (is.null(rhos)){
-    ns <- NullModel(x, type = type)$n  ## Normalized counts.
+    ns <- NullModel(x, type = type)[["n"]]  ## Normalized counts.
     uniq <- sort(unique(y))
     maxrho <- rep(NA, length(uniq))
 
     for (k in 1:length(uniq)){
       a <- colSums(x[y == uniq[k], ]) + beta
       b <- colSums(ns[y == uniq[k], ]) + beta
-      maxrho[k] <- max(abs(a/b - 1)*sqrt(b), na.rm = TRUE)
+      maxrho[k] <- max(abs(a/b - 1) * sqrt(b), na.rm = TRUE)
     }
 
-    rhos <- seq(0, max(maxrho, na.rm = TRUE)*(2/3), len = tuneLength)   ## len will be included in the control arguement as "tuneLength"
+    rhos <- seq(0, max(maxrho, na.rm = TRUE) * (2/3), len = tuneLength)   ## len will be included in the control arguement as "tuneLength"
   }
 
   ### f-fold r-repeats fold indices.

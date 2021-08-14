@@ -4,10 +4,21 @@
 \alias{discreteControl}
 \title{Define controlling parameters for discrete classifiers (NBLDA and PLDA)}
 \usage{
-discreteControl(method = "repeatedcv", number = 5, repeats = 10,
-  rho = NULL, rhos = NULL, beta = 1, prior = NULL, alpha = NULL,
-  truephi = NULL, foldIdx = NULL, tuneLength = 30,
-  parallel = FALSE, ...)
+discreteControl(
+  method = "repeatedcv",
+  number = 5,
+  repeats = 10,
+  rho = NULL,
+  rhos = NULL,
+  beta = 1,
+  prior = NULL,
+  alpha = NULL,
+  truephi = NULL,
+  foldIdx = NULL,
+  tuneLength = 30,
+  parallel = FALSE,
+  ...
+)
 }
 \arguments{
 \item{method}{validation method. Support repeated cross validation only ("repeatedcv").}
@@ -19,11 +30,11 @@ discreteControl(method = "repeatedcv", number = 5, repeats = 10,
 \item{rho}{a single numeric value. This parameter is used as tuning parameter in PLDA classifier.
 It does not effect NBLDA classifier.}
 
-\item{rhos}{a numeric vector. If optimum parameter is searched among given values, this option shpould be used.}
+\item{rhos}{a numeric vector. If optimum parameter is searched among given values, this option should be used.}
 
 \item{beta}{parameter of Gamma distribution. See PLDA for details.}
 
-\item{prior}{prior probabilities of each class}
+\item{prior}{prior probabilities of each class. a numeric vector.}
 
 \item{alpha}{a numeric value in the interval 0 and 1. It is used to apply power transformation through PLDA method.}
 

@@ -4,33 +4,43 @@
 %\VignetteIndexEntry{MLSeq}
 
 \documentclass[10pt]{article}
-%\usepackage[left=2.5cm, top=2.5cm, right=2.5cm, bottom=2cm]{geometry}
-%\usepackage[utf8]{inputenc}
-%\usepackage{color}
-%\usepackage[hidelinks]{hyperref}
-%\usepackage[backend=bibtex]{biblatex}
-% \usepackage[numbers]{natbib}
+\usepackage[left=3cm, top=2.5cm, right=2.5cm, bottom=2cm]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  filecolor=magenta,      
+  urlcolor=blue
+}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
 \usepackage[numbers]{natbib}
-%\bibliographystyle{abbrvnat}
-%\usepackage{textcomp}
 \usepackage{nameref} % cross-reference for section names.
 \usepackage{booktabs}
+\usepackage{caption}
+
+\usepackage{authblk}  % authors and affiliations
+\setcounter{Maxaffil}{0}
+\renewcommand\Affilfont{\itshape\small}
 
 %%% New Commands %%%
 \newcommand{\mlseq}{\textit{MLSeq}}
-
-%%%% BiocStyle Codes %%%%
-<<style-knitr, eval=TRUE, echo=FALSE, results='asis'>>=
-  BiocStyle::latex(use.unsrturl = FALSE, width = 80)
-@
-
+\newcommand{\Biocpkg}[1]{\href{https://www.bioconductor.org/packages/release/bioc/html/#1.html}{\texttt{#1}}}
+\newcommand{\CRANpkg}[1]{\href{https://cran.r-project.org/web/packages/#1/index.html}{\texttt{#1}}}
+\newcommand{\Rfunction}[1]{\texttt{#1}}
+\newcommand{\Rcode}[1]{\texttt{#1}}
+\newcommand{\Rclass}[1]{\texttt{#1}}
+\newcommand{\software}[1]{\texttt{#1}}
 
 %%%% Set knitr options %%%%
 <<knitr_options, echo=FALSE, results="hide", warning=FALSE>>=
 library(knitr)
 opts_chunk$set(tidy = FALSE, dev = "pdf", fig.show = "hide", message = FALSE, fig.align = "center", cache = FALSE)
 @
-
 
 %%%% Load required packages %%%%
 <<load_packages, echo=FALSE, results="hide", warning=FALSE>>=
@@ -39,42 +49,44 @@ library(DESeq2)
 library(edgeR)
 library(VennDiagram)
 library(pamr)
+library(caret)
 @
 
 \title{\textbf{MLSeq: Machine Learning Interface to RNA-Seq Data}}
-% \bioctitle[MLSeq]{MLSeq: Machine Learning Interface to RNA-Seq Data}
 
-\author[1]{Dincer Goksuluk\thanks{\email{dincer.goksuluk@hacettepe.edu.tr}}}
-\author[2]{Gokmen Zararsiz}
-\author[3]{Selcuk Korkmaz}
-\author[4]{Vahap Eldem}
+\author[1${}^{\dagger}$]{Dincer Goksuluk}
+\author[1]{Gokmen Zararsiz}
+\author[2]{Selcuk Korkmaz}
+\author[3]{Vahap Eldem}
+\author[1]{Ahmet Ozturk}
+\author[4]{Ahmet Ergun Karaagaoglu}
 \author[5]{Bernd Klaus}
-\author[2]{Ahmet Ozturk}
-\author[1]{Ahmet Ergun Karaagaoglu}
 
-\affil[1]{ Hacettepe University, Faculty of Medicine, Department of Biostatistics, Ankara, TURKEY \vspace*{0.3em}}
-\affil[2]{ Erciyes University, Faculty of Medicine, Department of Biostatistics, Kayseri, TURKEY \vspace*{0.3em}}
-\affil[3]{ Trakya University, Faculty of Medicine, Department of Biostatistics, Edirne, TURKEY \vspace*{0.3em}}
-\affil[4]{ Istanbul University, Faculty of Science, Department of Biology, Istanbul, TURKEY \vspace*{0.3em}}
+\affil[1]{ Erciyes University, Faculty of Medicine, Department of Biostatistics, Ankara, TURKEY \vspace*{0.3em}}
+\affil[2]{ Trakya University, Faculty of Medicine, Department of Biostatistics, Edirne, TURKEY \vspace*{0.3em}}
+\affil[3]{ Istanbul University, Faculty of Science, Department of Biology, Istanbul, TURKEY \vspace*{0.3em}}
+\affil[4]{ Hacettepe University, Faculty of Medicine, Department of Biostatistics, Kayseri, TURKEY \vspace*{0.3em}}
 \affil[5]{ EMBL Heidelberg, Heidelberg, Germany}
 
 \renewcommand\Authands{ and }
 
-% \date{}  % use this to remove date line.
+\date{
+  \today
+}
 
 \begin{document}
 
 \maketitle
 
 \vspace*{10pt}
-{\color{red}{\textbf{NOTE}: \Biocpkg{MLSeq} has major changes from version \textbf{1.20.1} and this will bump following versions to \textbf{2.y.z} in the next release of Bioconductor (ver. 3.8). Most of the functions from previous versions were changed and new functions are included. Please see Beginner's Guide before continue with the analysis.\vspace*{10pt}}}
+\noindent\textcolor{red}{\textbf{NOTE}: \Biocpkg{MLSeq} has major changes from version \textbf{1.20.1} and this will bump following versions to \textbf{2.y.z} in the next release of Bioconductor (ver. 3.8). Most of the functions from previous versions were changed and new functions are included. Please see Beginner's Guide before continue with the analysis.\vspace*{16pt}}
 
 \begin{abstract}
-\Biocpkg{MLSeq} is a comprehensive package for application of machine-learning algorithms in classification of next-generation RNA-Sequencing (RNA-Seq) data. Researchers have appealed to \mlseq{} for various purposes, which include prediction of disease outcomes, identification of best subset of features (genes, transcripts, other isoforms), and sorting the features based on their predictive importance. Using this package, researchers can upload their raw RNA-seq count data, preprocess their data and perform a wide range of machine-learning algorithms. Preprocessing approaches include deseq median ratio and trimmed mean of M means (TMM) normalization methods, as well as the logarithm of counts per million reads (log-cpm), variance stabilizing transformation (vst), regularized logarithmic transformation (rlog) and variance modeling at observational level (voom) transformation approaches. Normalization approaches can be used to correct systematic variations. Transformation approaches can be used to bring discrete RNA-seq data hierarchically closer to microarrays and conduct microarray-based classification algorithms. Currently, \mlseq{} package contains 90 microarray-based classifiers including the recently developed voom-based discriminant analysis classifiers. Besides these classifiers, \mlseq{} package also includes discrete-based classifiers, such as Poisson linear discriminant analysis (PLDA) and negative binomial linear discriminant analysis (NBLDA). Over the preprocessed data, researchers can build classification models, apply parameter optimization on these models, evaluate the model performances and compare the performances of different classification models. Moreover, the class labels of test samples can be predicted with the built models. \mlseq{} is a user friendly, simple and currently the most comprehensive package developed in the literature for RNA-Seq classification. To start using this package, users need to  upload their count data, which contains the number of reads mapped to each transcript for each sample. This kind of count data can be obtained from RNA-Seq experiments, also from other sequencing experiments such as ChIP-sequencing or metagenome sequencing. This vignette is presented to guide researchers how to use this package.
+\Biocpkg{MLSeq} is a comprehensive package for application of machine-learning algorithms in classification of next-generation RNA-Sequencing (RNA-Seq) data. Researchers have appealed to \mlseq{} for various purposes, which include prediction of disease outcomes, identification of best subset of features (genes, transcripts, other isoforms), and sorting the features based on their predictive importance. Using this package, researchers can upload their raw RNA-seq count data, preprocess their data and perform a wide range of machine-learning algorithms. Preprocessing approaches include deseq median ratio and trimmed mean of M means (TMM) normalization methods, as well as the logarithm of counts per million reads (log-cpm), variance stabilizing transformation (vst), regularized logarithmic transformation (rlog) and variance modeling at observational level (voom) transformation approaches. Normalization approaches can be used to correct systematic variations. Transformation approaches can be used to bring discrete RNA-seq data hierarchically closer to microarrays and conduct microarray-based classification algorithms. Currently, \mlseq{} package contains 90+ microarray-based classifiers including the recently developed voom-based discriminant analysis classifiers. Besides these classifiers, \mlseq{} package also includes discrete-based classifiers, such as Poisson linear discriminant analysis (PLDA) and negative binomial linear discriminant analysis (NBLDA). Over the preprocessed data, researchers can build classification models, apply parameter optimization on these models, evaluate the model performances and compare the performances of different classification models. Moreover, the class labels of test samples can be predicted with the built models. \mlseq{} is a user friendly, simple and currently the most comprehensive package developed in the literature for RNA-Seq classification. To start using this package, users need to  upload their count data, which contains the number of reads mapped to each transcript for each sample. This kind of count data can be obtained from RNA-Seq experiments, also from other sequencing experiments such as ChIP-sequencing or metagenome sequencing. This vignette is presented to guide researchers how to use this package.
 
 \vspace{1em}
 
-\textbf{MLSeq version:} \Sexpr{packageDescription("MLSeq")$Version}
+\noindent\textbf{MLSeq version:} \Sexpr{packageDescription("MLSeq")$Version}
 
 % \vspace{1em}
 
@@ -94,7 +106,6 @@ library(pamr)
 
 \tableofcontents
 
-\newpage
 \section{Introduction}
 With the recent developments in molecular biology, it is feasible to measure the expression levels of thousands of genes simultaneously. Using this information, one major task is the gene-expression based classification. With the use of microarray data, numerous classification algorithms are developed and adapted for this type of classification. RNA-Seq is a recent technology, which uses the capabilities of next-generation sequencing (NGS) technologies. It has some major advantages over microarrays such as providing less noisy data and detecting novel transcripts and isoforms. These advantages can also affect the performance of classification algorithms. Working with less noisy data can improve the predictive performance of classification algorithms. Further, novel transcripts may be a biomarker in related disease or phenotype. \mlseq{} package includes several classification algorithms, also normalization and transformation approaches for RNA-Seq classification.
 
@@ -105,7 +116,7 @@ library(MLSeq)
 @
 
 \section{Preparing the input data}
-MLSeq package expects a count matrix that contains the number of reads mapped to each transcript for each sample and class label information of samples in an S4 class \Rclass{DESeqDataSet}.
+MLSeq package expects a count matrix that contains the number of reads mapped to each transcript for each sample and class label information of samples in an S4 class \texttt{DESeqDataSet}.
 
 After mapping the RNA-Seq reads to a reference genome or transcriptome, number of reads mapped to the reference genome can be counted to measure the transcript abundance. It is very important that the count values must be raw sequencing read counts to implement the methods given in \mlseq{}. There are a number of functions in Bioconductor packages which summarizes mapped reads to a count data format. These tools include \Rfunction{featureCounts} in \Biocpkg{Rsubread} \citep{liao2013}, \Rfunction{summarizeOverlaps} in \Biocpkg{GenomicRanges} \citep{lawrence2013} and \Biocpkg{easyRNASeq} \citep{delhomme2012}. It is also possible to access this type of count data from Linux-based softwares as \emph{htseq-count} function in \software{HTSeq} \citep{Anders:2015aa} and \emph{multicov} function in \software{bedtools} \citep{quinlan2010} softwares.
 In this vignette, we will work with the cervical count data. Cervical data is from an experiment that measures the expression levels of 714 miRNAs of human samples \citep{witten2010}. There are 29 tumor and 29 non-tumor cervical samples and these two groups can be treated as two separate classes for classification purpose. We can define the file path with using \Rfunction{system.file}: \newline
@@ -158,7 +169,6 @@ classtr <- DataFrame(condition = class[-ind, ])
 classts <- DataFrame(condition = class[ind, ])
 @
 
-
 Now, we have \Sexpr{ncol(data.train)} samples which will be used to train the classification models and have remaining \Sexpr{ncol(data.test)} samples to be used to test the model performances. The training and test sets are stored in a \Rclass{DESeqDataSet} using related functions from \Biocpkg{DESeq2} \citep{love2014}. This object is then used as input for \mlseq{}. \newline
 
 <<DESeqDataSets>>=
@@ -178,7 +188,7 @@ Normalization is a crucial step of RNA-Seq data analysis. It can be defined as t
 After the normalization process, it is possible to directly use the discrete classifiers, e.g. PLDA and NBLDA. In addition, it is possible to apply an appropriate transformation on raw counts and bring the data hierarchically closer to microarrays. In this case, we can transform the data and apply a large number of classifiers, e.g. nearest shrunken centroids, penalized discriminant analysis, support vector machines, etc. One simple approach is the logarithm of counts per million reads (log-cpm) method, which transforms the data from the logarithm of the division of the counts by the library sizes and multiplication by one million (Equation \ref{eqn:formula10}). This transformation is simply an extension of the shifted-log transformation $z_{ij} = \log_{2}x_{ij} + 1$.
 
 \begin{equation} \label{eqn:formula10}
-	z_{ij} = \log_2\left(\frac{x_{ij}+0.5}{X_{.j}+1}\times 10^6\right)
+	z_{ij} = \log_2\left(\frac{x_{ij} + 0.5}{X_{.j} + 1}\times 10^6\right)
 \end{equation}
 
 Although log-cpm transformation provides less-skewed distribution, the gene-wise variances are still unequal and possibly related with the distribution mean. Hence, one may wish to transform data into continuous scale while controlling the gene-wise variances. \citet{Anders:2010aa} presented variance stabilizing transformation (vst) which provides variance independent from mean. \citet{love2014} presented regularized logarithmic (rlog) transformation. This method uses a shrinkage approach as used in \Biocpkg{DESeq2} paper. Rlog transformed values are similar with vst or shifted-log transformed values for genes with higher counts, while shrunken together for genes with lower counts. \mlseq{} allows researchers perform one of transformations \texttt{log-cpm}, \texttt{vst} and \texttt{rlog}. The possible \texttt{normalization-transformation} combinations are:
@@ -237,7 +247,7 @@ fit.svm <- classify(data = data.trainS4, method = "svmRadial",
 show(fit.svm)
 @
 
-The model were trained using 5-fold cross validation repeated 10 times. The number of levels for tuning parameter is set to 10. The length of tuning parameter space, \Rcode{tuneLength}, may be increased to be more sensitive while searchin optimal value of the parameters. However, this may drastically increase the total computation time. The tuning results are obtained using setter function \Rfunction{trained} as,
+The model were trained using 5-fold cross validation repeated 10 times. The number of levels for tuning parameter is set to 10. The length of tuning parameter space, \Rcode{tuneLength}, may be increased to be more sensitive while searching optimal value of the parameters. However, this may drastically increase the total computation time. The tuning results are obtained using setter function \Rfunction{trained} as,
 \newline
 
 <<fitted_model_svm>>=
@@ -258,6 +268,7 @@ dev.off()
 @
 
 \begin{figure*}
+  \centering
   \includegraphics[width=0.8\linewidth]{fitted_model_svm_figure.pdf}
   \caption{Tuning results for fitted model (svmRadial)}\label{fig:tune_svm}
 \end{figure*}
@@ -266,6 +277,7 @@ dev.off()
 For each classifier, it is possible to define how model should be created using control lists. We may categorize available classifiers into 3 partitions, i.e \emph{continuous}, \emph{discrete} and \emph{voom-based} classifiers. Continuous classifiers are based on \CRANpkg{caret}'s library while discrete and voom-based classifiers use functions from \Biocpkg{MLSeq}'s library. Since each classifier category has different control parameters to be used while building model, we should use corresponding control function for selected classifiers. We provide three different control functions, i.e (i) \Rfunction{trainControl} for continuous, (ii) \Rfunction{discreteControl} for discrete and (iii) \Rfunction{voomControl} for voom-based classifiers as summarized in Table \ref{tbl:control_functions}.
 
 \begin{table}
+  \centering
   \caption{Control functions for classifiers.}\label{tbl:control_functions}
   \begin{tabular}{ccl}
     \toprule
@@ -319,6 +331,7 @@ fit.voomDLDA <- classify(data = data.trainS4, method = "voomDLDA",
 <<>>=
 trained(fit.voomDLDA)
 @
+
 
 \section{Predicting the class labels of test samples}
 Class labels of the test cases are predicted based on the model characteristics of the trained model, e.g. discriminating function of the trained model in discriminant-based classifiers. However, an important point here is that the test set must have passed the same steps with the training set. This is especially true for the normalization and transformation stages for RNA-Seq based classification studies. Same preprocessing parameters should be used for both training and test sets to affirm that both sets are on the same scale and homoscedastic each other. If we use deseq median ratio normalization method, then the size factor of a test case will be estimated using gene-wise geometric means, $m_j$, from training set as follows:
@@ -502,12 +515,12 @@ venn.plot <- venn.diagram(
 @
 
 \begin{figure}[htb]
+  \centering
   \includegraphics[width=0.6\linewidth]{Selected_features.png}
   \vspace*{-10pt}
   \caption{Venn-diagram of selected features from sparse classifiers}
   \label{fig:vennDiagram}
 \end{figure}
-
 
 
 \section{Updating an MLSeq object using \Rfunction{update}}

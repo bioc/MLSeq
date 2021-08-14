@@ -500,7 +500,7 @@ show.voom.train <- function(object){
   cat("Summary of sample sizes: ", foldSampleSizeText, "\n")
 
   selectedGenesInfo <- list(selectedGenesNames = NULL)
-  if (!is.null(object@finalModel$model$opt.threshold) && object@finalModel$model$opt.threshold != 0){
+  if (all(!is.null(object@finalModel$model$opt.threshold), object@finalModel$model$opt.threshold != 0)){
     selectedGenesInfo$selectedGenesNames <- object@finalModel$model$SelectedGenes[[1]]
     selectedGenesInfo$selectedGenesIdx <- object@finalModel$model$SelectedGenesIndex[[1]]
   }

@@ -4,7 +4,10 @@
 .Ruserdata
 ^.*\.Rproj$
 ^\.Rproj\.user$
+/IgnoredFiles
 /IgnoredFiles/*
+IgnoredFiles/
+IgnoredFiles/*
 
 # History files
 .Rhistory
@@ -18,3 +21,7 @@
 .Rproj
 R.gitignore
 MLSeq.Rproj
+
+# Ignore Rstudio Workbench folders
+.local/
+.config/

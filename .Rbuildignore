@@ -6,4 +6,10 @@ R.gitignore
 README.Rmd
 
 # Ignored folders
+/IgnoredFiles
+/IgnoredFiles/*
 IgnoredFiles/
+IgnoredFiles/*
+
+.config/
+.local/

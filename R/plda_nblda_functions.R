@@ -115,22 +115,33 @@ Classify <- function(x, y, xte = NULL, rho = 0, beta = 1, rhos = NULL, type = c(
     xte <- x
     warning("Since no xte was provided, testing was performed on training data set.")
   }
-  if (!is.null(rho) && length(rho) > 1) stop("Can only enter 1 value of rho. If you would like to enter multiple values, use rhos argument.")
+  if (all(!is.null(rho), length(rho) > 1)){
+    stop("Can only enter 1 value of rho. If you would like to enter multiple values, use rhos argument.")
+  }
   type <- match.arg(type)
-  if (!transform && !is.null(alpha)) stop("You have asked for NO transformation but have entered alpha.")
+  if (all(!transform, !is.null(alpha))){
+    stop("You have asked for NO transformation but have entered alpha.")
+  } 
 
-  if (transform && is.null(alpha)){
+  if (all(transform, is.null(alpha))){
     alpha <- FindBestTransform(x)  ### Train ve test seti buradaki "alpha" değerine göre transform edilmeli.
   }
 
   if (transform){
-    if (alpha <= 0 || alpha > 1) stop("alpha must be between 0 and 1")
-    x <- x^alpha
-    xte <- xte^alpha
+    if (any(alpha <= 0, alpha > 1)) {
+      stop("alpha must be between 0 and 1.")
+    }
+    x <- x ^ alpha
+    xte <- xte ^ alpha
   }
 
-  if (is.null(prior)) prior <- rep(1/length(unique(y)), length(unique(y)))
-  if (is.null(rho) && is.null(rhos)) stop("Must enter rho or rhos.")
+  if (is.null(prior)){
+    prior <- rep(1 / length(unique(y)), length(unique(y)))
+  }
+  
+  if (all(is.null(rho), is.null(rhos))){
+    stop("Must enter 'rho' or 'rhos'.")
+  }
 
   null.out <- NullModel(x, type = type)
   ns <- null.out$n
@@ -179,18 +190,18 @@ predictPLDA <- function(x, y = NULL, xte = NULL, rho = 0, beta = 1, type = c("ml
   ##  type: normalization type. Should be same as in trained model.
   ##  prior: prior probabilities of each class. Should be same as in trained model.
   ##  transform: TRUE/FALSE.
-  ##  alpha: a numeri value between 0 and 1. It is used to perform power transformation on raw data.
+  ##  alpha: a numeric value between 0 and 1. It is used to perform power transformation on raw data.
   ##  null.out: train set parameters.
   ##  ds: offset parameters for each gene. gene expression parameters.
 
   type <- match.arg(type)
 
   if (transform){
-    if (alpha <= 0 || alpha > 1){
+    if (any(alpha <= 0, alpha > 1)){
       stop("alpha must be between 0 and 1")
     }
-    x <- x^alpha
-    xte <- xte^alpha
+    x <- x ^ alpha
+    xte <- xte ^ alpha
   }
 
   if (is.null(prior)){ ### prior trained model'den alınacak.
@@ -380,20 +391,29 @@ NullModelTest <- function(null.out, x, xte = NULL, type = c("mle", "deseq", "qua
 # Poisson Dissimilarities for Clustering.
 PoissonDistance <- function(x, beta = 1, type = c("mle", "deseq", "quantile"), transform = TRUE, alpha = NULL, perfeature = FALSE){
   type <- match.arg(type)
-  if (!transform && !is.null(alpha)) stop("You have asked for NO transformation but have entered alpha.")
-  if (transform && !is.null(alpha)){
-    if (alpha > 0 && alpha <= 1) x <- x^alpha
-    if (alpha <= 0 || alpha>1) stop("alpha must be between 0 and 1")
+  if (all(!transform, !is.null(alpha))){
+    stop("You have asked for NO transformation but have entered alpha.")
+  }
+  if (all(transform, !is.null(alpha))){
+    if (all(alpha > 0, alpha <= 1)){
+      x <- x ^ alpha
+    } 
+    if (any(alpha <= 0, alpha > 1)){
+      stop("alpha must be between 0 and 1.")
+    }
   }
 
-  if (transform && is.null(alpha)){
+  if (all(transform, is.null(alpha))){
     alpha <- FindBestTransform(x)
-    x <- x^alpha
+    x <- x ^ alpha
   }
+  
   dd <- matrix(0, nrow=nrow(x), ncol=nrow(x))
   ddd <- NULL
 
-  if (perfeature) ddd <- array(0, dim=c(nrow(x), nrow(x), ncol(x)))
+  if (perfeature){
+    ddd <- array(0, dim=c(nrow(x), nrow(x), ncol(x)))
+  }
 
   for (i in 2:nrow(dd)){
     xi <- x[i,]
@@ -407,11 +427,13 @@ PoissonDistance <- function(x, beta = 1, type = c("mle", "deseq", "quantile"), t
       dj <- (xj+beta)/(nj+beta)
       dd[i,j] <- sum(ni+nj-ni*di-nj*dj+xi*log(di)+xj*log(dj))
 
-      if (perfeature) ddd[j,i,] <- ddd[i,j,] <- ni+nj-ni*di-nj*dj+xi*log(di)+xj*log(dj)
+      if (perfeature){
+        ddd[j,i,] <- ddd[i,j,] <- ni + nj - ni * di - nj * dj + xi * log(di) + xj * log(dj)
+      }
     }
   }
 
-  save <- list(dd=as.dist(dd+t(dd)), alpha=alpha, x=x, ddd=ddd, alpha=alpha, type=type)
+  save <- list(dd = as.dist(dd + t(dd)), alpha = alpha, x = x, ddd = ddd, alpha = alpha, type = type)
   class(save) <- "poidist"
   return(save)
 }
@@ -521,7 +543,9 @@ Soft <- function(x, a){
 
 # Find d.kj estimates
 GetD <- function(ns, x, y, rho, beta, rhos = NULL){
-  if (!is.null(rho) && !is.null(rhos)) stop("do you want to use rho or rhos in GetD function???")
+  if (all(!is.null(rho), !is.null(rhos))){
+    stop("do you want to use rho or rhos in GetD function???")
+  }
   if (is.null(rhos)){
     uniq <- sort(unique(y))
     ds <- matrix(1, nrow = length(uniq), ncol = ncol(x))
