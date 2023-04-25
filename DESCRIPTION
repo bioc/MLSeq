@@ -1,7 +1,7 @@
 Package: MLSeq
 Type: Package
 Title: Machine Learning Interface for RNA-Seq Data
-Version: 2.17.0
+Version: 2.18.0
 Date: 2021-08-14
 Authors@R: c(person("Gokmen", "Zararsiz", role = c("aut", "cre"), email = "gokmenzararsiz@hotmail.com"),
   person("Dincer", "Goksuluk", role = "aut"),
